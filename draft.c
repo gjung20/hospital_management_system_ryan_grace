@@ -12,7 +12,7 @@
 int patientIDs[MAX_PATIENTS] = {0};
 char patientFullNamesList[MAX_PATIENTS][MAX_NAME_LENGTH];
 int patientAges[MAX_PATIENTS];
-char patientDiagnosisList[MAX_PATIENTS][MAX_DIAGNOSIS_LENGTH];
+char patientDiagnosesList[MAX_PATIENTS][MAX_DIAGNOSIS_LENGTH];
 int assignedRoomList[MAX_PATIENTS];
 
 int doctorSchedule[DAYS_IN_A_WEEK][SHIFTS_IN_A_DAY][MAX_NAME_LENGTH];
@@ -29,7 +29,7 @@ int idExists(int arr[], int size, int id) {
 }
 
 // Adds the patient to the patients list.
-void addPatients() {
+void addPatient() {
     if (totalPatients >= MAX_PATIENTS) {
         printf("Patient list is full! Cannot take anymore patients.");
         return;
@@ -81,12 +81,13 @@ void addPatients() {
     patientIDs[totalPatients] = patientID;
     strcpy(patientFullNamesList[totalPatients], patientFullName);
     patientAges[totalPatients] = patientAge;
-    strcpy(patientDiagnosisList[totalPatients], patientDiagnosis);
+    strcpy(patientDiagnosesList[totalPatients], patientDiagnosis);
     assignedRoomList[totalPatients] = assignedRoom;
 
     totalPatients++;
 }
 
+// add doctors to a schedule using a 2d array as the database
 void manageDoctorSchedule() {
     int day, shift;
     char doctorName[MAX_NAME_LENGTH];
@@ -99,11 +100,12 @@ void manageDoctorSchedule() {
         return;
     }
     printf("Enter Doctor's Name: ");
-    scanf(" %s", doctorName);
+    scanf(" %[^\n]s", doctorName);
     strcpy(doctorSchedule[day][shift], doctorName);
     printf("Doctor assigned successfully.\n");
 }
 
+// view the doctor schedule
 void viewDoctorSchedule() {
     char *days[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
     char *shifts[] = {"Morning", "Afternoon", "Evening"};
@@ -116,7 +118,35 @@ void viewDoctorSchedule() {
     }
 }
 
+// Menu to select different options.
+void menu() {
+    int choice;
+    do {
+        printf("\nHospital Management System\n");
+        printf("1. Add Patient Record\n");
+        printf("2. View All Patients\n");
+        printf("3. Search Patient by ID\n");
+        printf("4. Discharge Patient\n");
+        printf("5. Manage Doctor Schedule\n");
+        printf("6. View Doctor Schedule\n");
+        printf("7. Exit\n");
+        printf("Enter choice: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1: addPatient(); break;
+            case 2: viewPatients(); break;
+            case 3: searchPatient(); break;
+            case 4: dischargePatient(); break;
+            case 5: manageDoctorSchedule(); break;
+            case 6: viewDoctorSchedule(); break;
+            case 7: printf("Exiting...\n"); break;
+            default: printf("Invalid choice, try again.\n");
+        }
+    } while (choice != 7);
+}
+
 int main(void) {
-    printf("Hello, World!\n");
+    menu();
     return 0;
 }
