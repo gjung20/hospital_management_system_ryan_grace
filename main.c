@@ -99,7 +99,7 @@ void manageDoctorSchedule() {
         return;
     }
     printf("Enter Doctor's Name: ");
-    scanf(" %s", doctorName);
+    scanf(" %[^\n]s", doctorName);
     strcpy(doctorSchedule[day][shift], doctorName);
     printf("Doctor assigned successfully.\n");
 }
