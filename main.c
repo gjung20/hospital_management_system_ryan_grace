@@ -1,27 +1,81 @@
 #include <stdio.h>
 #include<string.h>
+#include<conio.h>
+#include<stdlib.h>
 
 #define MAX_PATIENTS 50
-#define MAX_NAME_LENGTH 50
-#define MAX_DIAGNOSIS_LENGTH 400
+#define MAX_NAME_LENGTH 50 //Including null character
+#define MAX_DIAGNOSIS_LENGTH 200 //Including null character
 #define DAYS_IN_A_WEEK 7
-// Represents each day 3 shift times: morning, afternoon, and night.
-#define SHIFTS_IN_A_DAY 3
+#define SHIFTS_IN_A_DAY 3 // Represents each day 3 shift times: morning, afternoon, and night.
 
 // Patient Information stored using 2D arrays.
 int patientIDs[MAX_PATIENTS] = {0};
-char patientFullNamesList[MAX_PATIENTS][MAX_NAME_LENGTH];
-int patientAges[MAX_PATIENTS];
-char patientDiagnosisList[MAX_PATIENTS][MAX_DIAGNOSIS_LENGTH];
-int assignedRoomList[MAX_PATIENTS];
+char patientFullNamesList[MAX_PATIENTS][MAX_NAME_LENGTH] = {0};
+int patientAges[MAX_PATIENTS] = {0};
+char patientDiagnosisList[MAX_PATIENTS][MAX_DIAGNOSIS_LENGTH] = {0};
+int assignedRoomList[MAX_PATIENTS] = {0};
 
 int doctorSchedule[DAYS_IN_A_WEEK][SHIFTS_IN_A_DAY][MAX_NAME_LENGTH];
 
 int totalPatients = 0;
+int currentID = 0;
 
-int idExists(int arr[], int size, int id) {
-    for (int i = 0; i < size; i++) {
-        if (arr[i] == id){
+void addPatients();
+void viewPatients();
+void searchPatients();
+void dischargePatients();
+void shiftArray(void *arr, int itemSize, int arrayLength, int index);
+void getSafeStringInput(char *target, int limit);
+void getSafeInt(int *target);
+void clearStdin();
+void manageDoctorSchedule();
+void viewDoctorSchedule();
+
+void menu()
+{
+    int choice;
+    do
+    {
+        printf("\nHospital Management System\n");
+        printf("1. Add Patient Record\n");
+        printf("2. View All Patients\n");
+        printf("3. Search for Patient\n");
+        printf("4. Discharge Patient\n");
+        printf("5. Manage Doctor Schedule\n");
+        printf("6. View Doctor Schedule\n");
+        printf("7. Exit\n");
+        getSafeInt(&choice);
+
+        switch (choice)
+        {
+            case 1: addPatients();
+                break;
+            case 2: viewPatients();
+                break;
+            case 3: searchPatients();
+                break;
+            case 4: dischargePatients();
+                break;
+            case 5: manageDoctorSchedule();
+                break;
+            case 6: viewDoctorSchedule();
+                break;
+            case 7: printf("Exiting... \n");
+                break;
+            default: printf("Invalid choice! Try again.\n");
+        }
+    }
+    while (choice != 8);
+}
+
+//Checks if the given ID is in the patientID's array, if so return the index, if not return -1.
+int idExists(int arr[], int size, int id)
+{
+    for (int i = 0; i < size; i++)
+    {
+        if (arr[i] == id)
+        {
             return i;
         }
     }
@@ -29,62 +83,150 @@ int idExists(int arr[], int size, int id) {
 }
 
 // Adds the patient to the patients list.
-void addPatients() {
-    if (totalPatients >= MAX_PATIENTS) {
-        printf("Patient list is full! Cannot take anymore patients.");
+void addPatients()
+{
+    if (totalPatients >= MAX_PATIENTS)
+    {
+        printf("Patient list is full! Cannot take more patients.");
         return;
     }
+
     // Temporary variables
-    int patientID;
-    char patientFullName[MAX_NAME_LENGTH];
+    char patientFullName[MAX_NAME_LENGTH] = {0};
     int patientAge;
-    char patientDiagnosis[MAX_DIAGNOSIS_LENGTH];
+    char patientDiagnosis[MAX_DIAGNOSIS_LENGTH] = {0};
     int assignedRoom;
 
-    // Validates the patients ID
-    printf("Enter a patient ID (positive number): ");
-    scanf("%d", &patientID);
-    getchar(); //consume newline
-
-    if (patientID <= 0 || idExists(patientIDs, totalPatients, patientID) != -1) {
-        printf("Invalid or duplicate patient ID. Please input a valid patient ID.\n");
-        return;
-    }
 
     // Assigns the patients full name to the temporary variable
     printf("Enter the patient's full name: ");
-    fgets(patientFullName, MAX_NAME_LENGTH, stdin);
-    patientFullName[strcspn(patientFullName, "\n")] = 0;
+    getSafeStringInput(patientFullName, MAX_NAME_LENGTH);
 
     // Assigns the patient's age to the temporary variable
-    do {
+    do
+    {
         printf("Enter the patient's age (positive number): ");
-        scanf("%d", &patientAge);
-        getchar(); //consume newline
-        if (patientAge < 0) {
-            printf("Patient must be over at least 0 years old!\n");
+        getSafeInt(&patientAge);
+        if (patientAge < 0)
+        {
+            printf("Patient must be over at least 0 years old!");
         }
-    } while (patientAge < 0);
+    }
+    while (patientAge < 0);
 
     // Assigns the patients diagnosis to the temporary variable
     printf("Enter the patient's diagnosis: ");
-    fgets(patientFullName, MAX_DIAGNOSIS_LENGTH, stdin);
-    patientDiagnosis[strcspn(patientDiagnosis, "\n")] = 0;
+    getSafeStringInput(patientDiagnosis, MAX_DIAGNOSIS_LENGTH);
 
     // Assigns the patients room number to the temporary variable
-    printf("Enter the patients room number (positive number): ");
-    scanf("%d", &assignedRoom);
-    getchar(); //consume newline
+    do
+    {
+        printf("Enter the patient's room number (positive number): ");
+        getSafeInt(&assignedRoom);
+        if (assignedRoom < 0)
+        {
+            printf("Room number must be positive!");
+        }
+    }
+    while (assignedRoom < 0);
 
     // Applies the values in the temporary variables to the corresponding place in the 2D array
-    // (our "database")
-    patientIDs[totalPatients] = patientID;
+    patientIDs[totalPatients] = currentID;
     strcpy(patientFullNamesList[totalPatients], patientFullName);
     patientAges[totalPatients] = patientAge;
     strcpy(patientDiagnosisList[totalPatients], patientDiagnosis);
     assignedRoomList[totalPatients] = assignedRoom;
 
     totalPatients++;
+    currentID++;
+}
+
+// Displays all patients in a tabular format
+void viewPatients()
+{
+    if (totalPatients == 0)
+    {
+        printf("No patients found.\n");
+        return;
+    }
+
+    printf("\nPatients:\n");
+    printf("ID\tName\t\t\t\t\t\t\tAge\tRoom\tDiagnosis\n");
+    for (int i = 0; i < totalPatients; i++)
+    {
+        printf("%d\t%-50s\t%d\t%d\t%s\n", patientIDs[i], patientFullNamesList[i], patientAges[i],
+               assignedRoomList[i], patientDiagnosisList[i]);
+    }
+}
+
+// Allows the user to search for patients by ID or by name
+void searchPatients()
+{
+    int choice, id, index = -1;
+    char input[50];
+
+    printf("Search by (1) ID or (2) Name:");
+    getSafeInt(&choice);
+
+    if (choice == 1)
+    {
+        printf("Enter Patient ID:");
+        getSafeInt(&id);
+        index = idExists(patientIDs, totalPatients, id);
+    }
+    else if (choice == 2)
+    {
+        getSafeStringInput(input, MAX_NAME_LENGTH);
+        for (int i = 0; i < totalPatients; i++)
+        {
+            if (strcmp(patientFullNamesList[i], input) == 0)
+            {
+                index = i;
+                break;
+            }
+        }
+    }
+
+    if (index != -1)
+    {
+        printf("Patient Found - ID: %d, Name: %s, Age: %d, Diagnosis: %s, Room: %d\n", patientIDs[index],
+               patientFullNamesList[index],
+               patientAges[index], patientDiagnosisList[index], assignedRoomList[index]);
+    }
+    else
+    {
+        printf("Patient not found.\n");
+    }
+}
+
+// Removes a patient from each of the arrays
+void dischargePatients()
+{
+    if (totalPatients == 0)
+    {
+        printf("No patients found.\n");
+    }
+
+    int id;
+    int index;
+
+    printf("Enter Patient ID:");
+    getSafeInt(&id);
+    index = idExists(patientIDs, totalPatients, id);
+
+    if (index != -1)
+    {
+        shiftArray(patientIDs, sizeof(patientIDs[0]), MAX_PATIENTS, index);
+        shiftArray(patientFullNamesList, sizeof(patientFullNamesList[0]), MAX_PATIENTS, index);
+        shiftArray(patientAges, sizeof(patientAges[0]), MAX_PATIENTS, index);
+        shiftArray(patientDiagnosisList, sizeof(patientDiagnosisList[0]), MAX_PATIENTS, index);
+        shiftArray(assignedRoomList, sizeof(assignedRoomList[0]), MAX_PATIENTS, index);
+        totalPatients--;
+    }
+    else
+    {
+        printf("Patient not found.\n");
+    }
 }
 
 void manageDoctorSchedule() {
@@ -116,7 +258,111 @@ void viewDoctorSchedule() {
     }
 }
 
+/*
+ * Removes the value at the given index from the given array, shifting proceeding value back an index.
+ *
+ * @param arr the  array to remove value from
+ * @param itemSize the number of bytes 1 array item takes in memory
+ * @param arrayLength the length of the array given
+ * @param the index to remove
+ */
+void shiftArray(void *arr, int itemSize, int arrayLength, int index)
+{
+    if (index != arrayLength) // Skip if removing last item in array to avoid reading into other memory
+    {
+        void *target = arr + itemSize * index; // Start of the item to delete
+        void *source = arr + itemSize * (index + 1); // Start of items to shift
+        size_t numBytes = (arrayLength - index - 1) * itemSize;
+
+        memmove(target, source, numBytes);
+    }
+
+    // Replace last item of array with null
+    memset(arr + (arrayLength - 1) * itemSize, 0, itemSize);
+}
+
+/*
+ * Grabs a string of the given length from stdin. If there is more in stdin than the given length,
+ * a warning will be posted to the console and allow the user to  re-input thier response.
+ *
+ * To check if there is extra chars in stdin, it first grabs 1 extra character than requested and replaces the first \n with a \0.
+ * If the first \0 is the last character of the string, then last character will be cut off when making the correct length string
+ * thus it warns the user.
+ *
+ * @param the string to store the data
+ * @param how long the string will be including null terminator
+ */
+void getSafeStringInput(char *target, int limit)
+{
+    int invalidString = 1;
+    while (invalidString) // loop until a valid input
+    {
+        char tooLongString[limit + 1]; // Stores a string 1 longer than necessary
+
+        fgets(tooLongString, limit + 1, stdin);
+        tooLongString[strcspn(tooLongString, "\n")] = 0;
+
+        strncpy(target, tooLongString, limit);
+        target[limit - 1] = '\0';
+
+        if (strcspn(tooLongString, "\0") < limit) // if the string is too long, warn the user
+        {
+            break;
+        }
+
+        clearStdin();
+        printf("Warning! Inputted value is too long, the following value will be saved: \n%s\nEnter 1 to confirm, 2 to Cancel:", target);
+
+            while (1)
+            {
+                int choice = 0;
+                getSafeInt(&choice);
+                if (choice == 1)
+                {
+                    printf("Confirmed.");
+                    invalidString = 0;
+                    break;
+                }
+                if (choice == 2)
+                {
+                    printf("Canceled, Input new String:");
+                    break;
+                }
+                printf("Invalid input, try again:");
+            }
+    }
+
+}
+
+/*
+ * Grabs an int from stdin, validates that it is an int, and assigns it to the given target
+ * @param target
+ */
+void getSafeInt(int* target)
+{
+    char input[10];
+    char *end = NULL;
+    while (1)
+    {
+        scanf("%s", input);
+        clearStdin();
+
+        long int num = strtol(input, &end, 10);
+        if (end == input || *end != '\0') {
+            printf("Invalid input, try again:");
+        } else {
+            *target = num;
+            break;
+        }
+    }
+}
+
+// Consumes characters in stdin until a \n is reached
+void clearStdin()
+{
+    while (getchar() != '\n');
+}
+
 int main(void) {
-    printf("Hello, World!\n");
-    return 0;
+    menu();
 }
