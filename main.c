@@ -16,7 +16,7 @@ int patientAges[MAX_PATIENTS] = {0};
 char patientDiagnosisList[MAX_PATIENTS][MAX_DIAGNOSIS_LENGTH] = {0};
 int assignedRoomList[MAX_PATIENTS] = {0};
 
-int doctorSchedule[DAYS_IN_A_WEEK][SHIFTS_IN_A_DAY][MAX_NAME_LENGTH];
+int doctorSchedule[DAYS_IN_A_WEEK][SHIFTS_IN_A_DAY][MAX_NAME_LENGTH] = {0};
 
 int totalPatients = 0;
 int currentID = 0;
@@ -66,7 +66,7 @@ void menu()
             default: printf("Invalid choice! Try again.\n");
         }
     }
-    while (choice != 8);
+    while (choice != 7);
 }
 
 //Checks if the given ID is in the patientID's array, if so return the index, if not return -1.
@@ -139,6 +139,7 @@ void addPatients()
 
     totalPatients++;
     currentID++;
+    printf("Patient created successfully.\n");
 }
 
 // Displays all patients in a tabular format
@@ -163,7 +164,7 @@ void viewPatients()
 void searchPatients()
 {
     int choice, id, index = -1;
-    char input[50];
+    char input[50] = {0};
 
     printf("Search by (1) ID or (2) Name:");
     getSafeInt(&choice);
@@ -222,6 +223,7 @@ void dischargePatients()
         shiftArray(patientDiagnosisList, sizeof(patientDiagnosisList[0]), MAX_PATIENTS, index);
         shiftArray(assignedRoomList, sizeof(assignedRoomList[0]), MAX_PATIENTS, index);
         totalPatients--;
+        printf("Doctor discharged successfully.\n");
     }
     else
     {
@@ -231,21 +233,38 @@ void dischargePatients()
 
 void manageDoctorSchedule() {
     int day, shift;
-    char doctorName[MAX_NAME_LENGTH];
-    printf("Enter day (0-6, where 0 = Sunday): ");
-    scanf("%d", &day);
-    printf("Enter shift (0=Morning, 1=Afternoon, 2=Evening): ");
-    scanf("%d", &shift);
-    if (day < 0 || day >= DAYS_IN_A_WEEK || shift < 0 || shift >= SHIFTS_IN_A_DAY) {
-        printf("Invalid day or shift.\n");
-        return;
-    }
+
+    // get the day
+    do
+    {
+        printf("Enter day (0-6, where 0 = Sunday): ");
+        getSafeInt(&day);
+
+        if (day < 0 || day > 7)
+        {
+            printf("Invalid day.\n");
+        }
+    } while (day < 0  || day > 6);
+
+    // get the shift
+    do
+    {
+        printf("Enter shift (0=Morning, 1=Afternoon, 2=Evening): ");
+        getSafeInt(&shift);
+
+        if (shift < 0 || shift > 2)
+        {
+            printf("Invalid shift.\n");
+        }
+    } while (shift < 0  || shift > 2);
+
+    // get the name
     printf("Enter Doctor's Name: ");
-    scanf(" %[^\n]s", doctorName);
-    strcpy(doctorSchedule[day][shift], doctorName);
+    getSafeStringInput(doctorSchedule[day][shift], MAX_NAME_LENGTH);
     printf("Doctor assigned successfully.\n");
 }
 
+// DDisplays the schedule
 void viewDoctorSchedule() {
     char *days[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
     char *shifts[] = {"Morning", "Afternoon", "Evening"};
@@ -268,22 +287,29 @@ void viewDoctorSchedule() {
  */
 void shiftArray(void *arr, int itemSize, int arrayLength, int index)
 {
-    if (index != arrayLength) // Skip if removing last item in array to avoid reading into other memory
+    if (index < 0 || index >= arrayLength) // Prevent out-of-bounds access
     {
-        void *target = arr + itemSize * index; // Start of the item to delete
-        void *source = arr + itemSize * (index + 1); // Start of items to shift
+        return;
+    }
+
+    char *charArr = arr; // Cast void * to char *
+
+    if (index != arrayLength - 1) // Avoid shifting if removing last item
+    {
+        char *target = charArr + itemSize * index;
+        char *source = charArr + itemSize * (index + 1);
         size_t numBytes = (arrayLength - index - 1) * itemSize;
 
         memmove(target, source, numBytes);
     }
 
-    // Replace last item of array with null
-    memset(arr + (arrayLength - 1) * itemSize, 0, itemSize);
+    // Replace last item of array with zero bytes
+    memset(charArr + (arrayLength - 1) * itemSize, 0, itemSize);
 }
 
 /*
  * Grabs a string of the given length from stdin. If there is more in stdin than the given length,
- * a warning will be posted to the console and allow the user to  re-input thier response.
+ * a warning will be posted to the console and allow the user to  re-input their response.
  *
  * To check if there is extra chars in stdin, it first grabs 1 extra character than requested and replaces the first \n with a \0.
  * If the first \0 is the last character of the string, then last character will be cut off when making the correct length string
@@ -294,6 +320,7 @@ void shiftArray(void *arr, int itemSize, int arrayLength, int index)
  */
 void getSafeStringInput(char *target, int limit)
 {
+
     int invalidString = 1;
     while (invalidString) // loop until a valid input
     {
@@ -336,7 +363,7 @@ void getSafeStringInput(char *target, int limit)
 
 /*
  * Grabs an int from stdin, validates that it is an int, and assigns it to the given target
- * @param target
+ * @param where to store the int
  */
 void getSafeInt(int* target)
 {
@@ -363,6 +390,7 @@ void clearStdin()
     while (getchar() != '\n');
 }
 
+//runs the program
 int main(void) {
     menu();
 }
