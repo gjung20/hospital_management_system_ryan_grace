@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include<string.h>
-#include<conio.h>
+// #include<conio.h>
 #include<stdlib.h>
 
 #define MAX_PATIENTS 50
@@ -16,6 +16,7 @@ int patientAges[MAX_PATIENTS] = {0};
 char patientDiagnosisList[MAX_PATIENTS][MAX_DIAGNOSIS_LENGTH] = {0};
 int assignedRoomList[MAX_PATIENTS] = {0};
 
+// Shift information stored using 2D arrays.
 int doctorSchedule[DAYS_IN_A_WEEK][SHIFTS_IN_A_DAY][MAX_NAME_LENGTH] = {0};
 
 int totalPatients = 0;
@@ -32,6 +33,7 @@ void clearStdin();
 void manageDoctorSchedule();
 void viewDoctorSchedule();
 
+// Menu Interface
 void menu()
 {
     int choice;
@@ -223,7 +225,7 @@ void dischargePatients()
         shiftArray(patientDiagnosisList, sizeof(patientDiagnosisList[0]), MAX_PATIENTS, index);
         shiftArray(assignedRoomList, sizeof(assignedRoomList[0]), MAX_PATIENTS, index);
         totalPatients--;
-        printf("Doctor discharged successfully.\n");
+        printf("Patient discharged successfully.\n");
     }
     else
     {
@@ -231,6 +233,8 @@ void dischargePatients()
     }
 }
 
+// Edit the doctor schedule by asking for day of the week and shift time.
+// If a shift is added on a day a shift is already assigned, the new shift will replace the old one.
 void manageDoctorSchedule() {
     int day, shift;
 
@@ -264,7 +268,7 @@ void manageDoctorSchedule() {
     printf("Doctor assigned successfully.\n");
 }
 
-// DDisplays the schedule
+// Displays the schedule
 void viewDoctorSchedule() {
     char *days[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
     char *shifts[] = {"Morning", "Afternoon", "Evening"};
